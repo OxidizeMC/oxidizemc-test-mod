@@ -1,8 +1,9 @@
-use java_oxide::Env;
-use oxidizemc_fabric::{Logger, LoggerFactory};
+use oxidizemc_fabric::{JLogger, LoggerFactory};
+use oxidizemc_fabric::derive::entrypoint;
 
-fn run(env: Env<'_>) {
-    let logger: Logger = LoggerFactory::get_logger(env, "oxidizemc-rust");
+#[entrypoint(ModInitializer)]
+fn main() {
+    let logger: JLogger = LoggerFactory::get_logger("oxidizemc-rust");
     let name: String = logger.get_name();
 
     logger.info(format!("Hello world! I am {}!", name));
@@ -10,14 +11,16 @@ fn run(env: Env<'_>) {
 
     println!("Normal printing");
     logger.info("Cool!".to_string());
-
-    panic!("Am I panicking like I should be?")
 }
 
-#[unsafe(no_mangle)]
-extern "system" fn Java_com_github_pitchblacknights_oxidizemc_Natives_run(
-    jni_env: Env<'_>,
-    _class: *mut (),
-) {
-    run(jni_env);
+#[entrypoint(DedicatedServerModInitializer)]
+fn main2() {
+    let logger: JLogger = LoggerFactory::get_logger("oxidizemc-rust-server");
+    logger.info("I'm running on a server".to_string());
+}
+
+#[entrypoint(ClientModInitializer)]
+fn main3() {
+    let logger: JLogger = LoggerFactory::get_logger("oxidizemc-rust-client");
+    logger.info("I'm running on a client".to_string());
 }
