@@ -1,0 +1,144 @@
+name: "Build Helper"
+description: "Custom helper action for the build workflow"
+
+inputs:
+  platform:
+    description: ""
+    required: true
+  toolchain:
+    description: ""
+    required: true
+  profile:
+    description: ""
+    required: true
+  cache-artifacts:
+    description: ""
+    required: false
+    default: "true"
+  artifact-dir:
+    description: "Default: `artifact-cache`"
+    required: false
+    default: ""
+
+runs:
+  using: "composite"
+
+  steps:
+    - name: "Define cache data"
+      id: cache-data
+      shell: bash
+      run: |
+        if [[ -n "${{ inputs.artifact-dir }}" ]]; then
+          echo 'dir=${{ inputs.artifact-dir }}' >> "$GITHUB_OUTPUT"
+        else
+          echo 'dir=artifact-cache' >> "$GITHUB_OUTPUT"
+        fi
+        echo 'key=artifact-cache-${{ inputs.platform }}-${{ github.run_id }}-${{ github.run_attempt }}' >> "$GITHUB_OUTPUT"
+        cat "$GITHUB_OUTPUT"
+
+    - name: "Get build target"
+      id: build-target
+      env:
+        PLATFORM: ${{ inputs.platform }}
+      shell: bash
+      run: |
+        if [[ $PLATFORM = "Windows-x86_64" ]]; then
+          echo 'out=x86_64-pc-windows-msvc' >> "$GITHUB_OUTPUT"
+          echo 'arch=x86_64' >> "$GITHUB_OUTPUT"
+        elif [[ $PLATFORM = "Windows-aarch64" ]]; then
+          echo 'out=aarch64-pc-windows-msvc' >> "$GITHUB_OUTPUT"
+          echo 'arch=aarch64' >> "$GITHUB_OUTPUT"
+        elif [[ $PLATFORM = "Linux-x86_64" ]]; then
+          echo 'out=x86_64-unknown-linux-gnu' >> "$GITHUB_OUTPUT"
+          echo 'arch=x86_64' >> "$GITHUB_OUTPUT"
+        elif [[ $PLATFORM = "Linux-aarch64" ]]; then
+          echo 'out=aarch64-unknown-linux-gnu' >> "$GITHUB_OUTPUT"
+          echo 'arch=aarch64' >> "$GITHUB_OUTPUT"
+        elif [[ $PLATFORM = "macOS-x86_64" ]]; then
+          echo 'out=x86_64-apple-darwin' >> "$GITHUB_OUTPUT"
+          echo 'arch=x86_64' >> "$GITHUB_OUTPUT"
+        elif [[ $PLATFORM = "macOS-aarch64" ]]; then
+          echo 'out=aarch64-apple-darwin' >> "$GITHUB_OUTPUT"
+          echo 'arch=aarch64' >> "$GITHUB_OUTPUT"
+        else
+          echo Provided platform is not valid!
+          echo PLATFORM = $PLATFORM
+          exit 1
+        fi
+        cat "$GITHUB_OUTPUT"
+
+    - name: "Get build dir path"
+      id: build-dir
+      env:
+        PROFILE: ${{ inputs.profile }}
+      shell: bash
+      run: |
+        if [[ $PROFILE = "dev" ]]; then
+          echo 'out=target/${{ steps.build-target.outputs.out }}/debug' >> "$GITHUB_OUTPUT"
+        elif [[ $PROFILE = "release" ]]; then
+          echo 'out=target/${{ steps.build-target.outputs.out }}/release' >> "$GITHUB_OUTPUT"
+        else
+          echo Provided profile is not valid!
+          echo PROFILE = $PROFILE
+          exit 1
+        fi
+        cat "$GITHUB_OUTPUT"
+
+    - name: "Get build artifact path"
+      id: build-artifact
+      env:
+        PLATFORM: ${{ inputs.platform }}
+      shell: bash
+      run: |
+        if [[ $PLATFORM = "Windows-x86_64" ]] || [[ $PLATFORM = "Windows-aarch64" ]]; then
+          echo 'src=${{ steps.build-dir.outputs.out }}/oxidizemc.dll' >> "$GITHUB_OUTPUT"
+          echo 'dest=${{ steps.cache-data.outputs.dir }}/oxidizemc-win-${{ steps.build-target.outputs.arch }}.dll' >> "$GITHUB_OUTPUT"
+        elif [[ $PLATFORM = "Linux-x86_64" ]] || [[ $PLATFORM = "Linux-aarch64" ]]; then
+          echo 'src=${{ steps.build-dir.outputs.out }}/liboxidizemc.so' >> "$GITHUB_OUTPUT"
+          echo 'dest=${{ steps.cache-data.outputs.dir }}/oxidizemc-linux-${{ steps.build-target.outputs.arch }}.so' >> "$GITHUB_OUTPUT"
+        elif [[ $PLATFORM = "macOS-x86_64" ]] || [[ $PLATFORM = "macOS-aarch64" ]]; then
+          echo 'src=${{ steps.build-dir.outputs.out }}/liboxidizemc.dylib' >> "$GITHUB_OUTPUT"
+          echo 'dest=${{ steps.cache-data.outputs.dir }}/oxidizemc-osx-${{ steps.build-target.outputs.arch }}.dylib' >> "$GITHUB_OUTPUT"
+        else
+          echo Provided platform is not valid!
+          echo PLATFORM = $PLATFORM
+          exit 1
+        fi
+        cat "$GITHUB_OUTPUT"
+
+    - name: "`cross build`"
+      uses: houseabsolute/actions-rust-cross@v1
+      with:
+        command: "build"
+        target: ${{ steps.build-target.outputs.out }}
+        toolchain: ${{ inputs.toolchain }}
+        args: "--locked --profile ${{ inputs.profile }}"
+
+    - name: "Restore artifact cache"
+      uses: actions/cache/restore@v4
+      id: cache
+      if: ${{ inputs.cache-artifacts == 'true' }}
+      with:
+        path: ${{ steps.cache-data.outputs.dir }}
+        key: ${{ steps.cache-data.outputs.key }}
+        enableCrossOsArchive: true
+
+    - name: "`mkdir ${{ steps.cache-data.outputs.dir }}`"
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        mkdir ${{ steps.cache-data.outputs.dir }}
+
+    - name: "Copy artifact to artifact cache"
+      if: ${{ inputs.cache-artifacts == 'true' }}
+      shell: bash
+      run: |
+        cp ${{ steps.build-artifact.outputs.src }} ${{ steps.build-artifact.outputs.dest }}
+
+    - name: "Save artifact cache"
+      uses: actions/cache/save@v4
+      if: ${{ inputs.cache-artifacts == 'true' }}
+      with:
+        path: ${{ steps.cache-data.outputs.dir }}
+        key: ${{ steps.cache-data.outputs.key }}
+        enableCrossOsArchive: true
