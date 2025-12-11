@@ -27,7 +27,7 @@ on:
       toolchain:
         description: "What rust toolchain to use"
         required: false
-        default: "stable"
+        default: "nightly"
         type: string
 
 env:
