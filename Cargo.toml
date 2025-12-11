@@ -1,0 +1,16 @@
+[package]
+name = "oxidizemc-test-mod"
+version = "0.0.0-dev.1"
+edition = "2024"
+authors = ["PitchBlackNights <pitchblacknights@proton.me>"]
+repository = "https://github.com/oxidizemc/oxidizemc-test-mod"
+license = "MIT"
+readme = "README.md"
+
+[dependencies]
+oxidizemc-fabric = { path = "../oxidizemc-fabric" }
+# oxidizemc-fabric = { git = "https://github.com/OxidizeMC/oxidizemc-fabric", rev = "..." }
+java-oxide = { git = "https://github.com/OxidizeMC/java-oxide", rev = "1e36ecbeeef8536a4d3370ffd0dc293ddce23294" }
+
+[lib]
+crate-type = ["cdylib"]
