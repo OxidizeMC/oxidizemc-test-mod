@@ -1,5 +1,5 @@
 use oxidizemc_fabric::{JLogger, LoggerFactory};
-use oxidizemc_fabric::derive::entrypoint;
+use oxidizemc::entrypoint;
 
 #[entrypoint(ModInitializer)]
 fn main() {
@@ -13,14 +13,14 @@ fn main() {
     logger.info("Cool!".to_string());
 }
 
-#[entrypoint(DedicatedServerModInitializer)]
-fn main2() {
-    let logger: JLogger = LoggerFactory::get_logger("oxidizemc-rust-server");
-    logger.info("I'm running on a server".to_string());
-}
+// #[entrypoint(DedicatedServerModInitializer)]
+// fn main2() {
+//     let logger: JLogger = LoggerFactory::get_logger("oxidizemc-rust-server");
+//     logger.info("I'm running on a server".to_string());
+// }
 
-#[entrypoint(ClientModInitializer)]
-fn main3() {
-    let logger: JLogger = LoggerFactory::get_logger("oxidizemc-rust-client");
-    logger.info("I'm running on a client".to_string());
-}
+// #[entrypoint(ClientModInitializer)]
+// fn main3() {
+//     let logger: JLogger = LoggerFactory::get_logger("oxidizemc-rust-client");
+//     logger.info("I'm running on a client".to_string());
+// }

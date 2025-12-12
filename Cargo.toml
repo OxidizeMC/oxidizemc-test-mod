@@ -11,8 +11,10 @@ readme = "README.md"
 crate-type = ["cdylib"]
 
 [dependencies]
+oxidizemc = { path = "../oxidizemc" }
+# oxidizemc = "0.1.0"
 oxidizemc-fabric = { path = "../oxidizemc-fabric" }
-# oxidizemc-fabric = { git = "https://github.com/OxidizeMC/oxidizemc-fabric", rev = "..." }
+# oxidizemc-fabric = "0.1.0"
 # java-oxide = "0.1.0"
 
 [build-dependencies]

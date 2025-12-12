@@ -53,12 +53,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "oxidizemc"
+version = "0.0.0-dev.1"
+dependencies = [
+ "java-oxide",
+ "oxidizemc-derive",
+]
+
+[[package]]
+name = "oxidizemc-derive"
+version = "0.0.0-dev.1"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.111",
+]
+
+[[package]]
 name = "oxidizemc-fabric"
 version = "0.0.0-dev.1"
 dependencies = [
  "java-oxide",
+ "oxidizemc",
  "oxidizemc-fabric-bindings",
- "oxidizemc-fabric-derive",
  "toml",
 ]
 
@@ -70,18 +87,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "oxidizemc-fabric-derive"
-version = "0.0.0-dev.1"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.111",
-]
-
-[[package]]
 name = "oxidizemc-test-mod"
 version = "0.0.0-dev.1"
 dependencies = [
+ "oxidizemc",
  "oxidizemc-fabric",
 ]
 
