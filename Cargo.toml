@@ -18,7 +18,7 @@ oxidizemc-fabric = { path = "../oxidizemc-fabric" }
 # java-oxide = "0.1.0"
 
 [build-dependencies]
+oxidizemc = { path = "../oxidizemc", default-features = false, features = ["build"] }
+# oxidizemc = { version = "0.1.0", default-features = false, features = ["build"] }
 oxidizemc-fabric = { path = "../oxidizemc-fabric", default-features = false, features = ["build"] }
-
-[package.metadata]
-java-package = "com.github.pitchblacknights.oxidizemc"
+# oxidizemc-fabric = { version = "0.1.0", default-features = false, features = ["build"] }
